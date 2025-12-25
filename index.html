@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圣诞快乐 - 给我的小宝宝媳妇儿</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        /* 星空背景容器 */
+        body {
+            overflow: hidden;
+            min-height: 100vh;
+            background: #000; /* 夜晚黑色背景 */
+            position: relative;
+        }
+        /* 星星样式（银河效果） */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 2s infinite alternate;
+        }
+        /* 银河渐变效果 */
+        .milky-way {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, rgba(40, 80, 120, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: 2;
+            pointer-events: none;
+        }
+        /* 星星闪烁动画 */
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        /* 照片容器 */
+        .photo-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .photo {
+            width: 80%;
+            max-width: 600px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); /* 金色光晕 */
+            border: 5px solid #fff;
+        }
+        /* 文案容器 */
+        .text-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            margin-top: 40px;
+            padding: 0 20px;
+        }
+        .christmas-text {
+            font-size: 24px;
+            color: #fff;
+            font-family: "Microsoft YaHei", sans-serif;
+            text-shadow: 0 0 10px #ff0000, 0 0 20px #ff9900, 0 0 30px #ffff00; /* 五彩文字阴影 */
+            line-height: 1.8;
+        }
+        /* 音乐播放按钮（解决浏览器自动播放限制） */
+        .music-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 20;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ff69b4;
+            color: #fff;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 0 20px #ff69b4;
+        }
+        /* 烟花画布 */
+        #fireworks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 星空背景 -->
+    <div class="stars" id="stars"></div>
+    <!-- 银河效果 -->
+    <div class="milky-way"></div>
+    <!-- 烟花画布 -->
+    <canvas id="fireworks"></canvas>
+    <!-- 照片区域 -->
+    <div class="photo-container">
+        <!-- 👇 替换这里的图片路径为你的合照路径 -->
+        <img src="E:\christmas\love.jpg" alt="我和媳妇儿的合照" class="photo">
+    </div>
+    <!-- 文案区域 -->
+    <div class="text-container">
+        <p class="christmas-text">
+            亲爱的小宝宝媳妇儿，今天圣诞节，我希望你能每天都快乐，爱你的老公。
+        </p>
+    </div>
+    <!-- 背景音乐 -->
+    <audio id="bg-music" loop>
+        <!-- 👇 替换这里的音频路径为你的背景音乐路径 -->
+        <source src="E:\christmas\唯一.mp3" type="audio/mpeg">
+    </audio>
+    <!-- 音乐播放按钮 -->
+    <button class="music-btn" id="musicBtn">🎵</button>
+
+    <script>
+        // 1. 生成随机星星（银河效果）
+        const starsContainer = document.getElementById('stars');
+        const starCount = 2000; // 星星数量（越多银河越明显）
+        for (let i = 0; i < starCount; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            // 随机位置
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            // 随机大小（模拟远近）
+            const size = Math.random() * 2;
+            // 银河集中在中间区域（调整数值可改变银河位置）
+            const offsetX = Math.random() * 30 - 15;
+            const offsetY = Math.random() * 30 - 15;
+            star.style.left = `${x + offsetX}%`;
+            star.style.top = `${y + offsetY}%`;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            // 随机闪烁延迟
+            star.style.animationDelay = `${Math.random() * 2}s`;
+            starsContainer.appendChild(star);
+        }
+
+        // 2. 烟花动画
+        const canvas = document.getElementById('fireworks');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let fireworks = [];
+        let particles = [];
+
+        // 烟花类
+        class Firework {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height;
+                this.speedY = Math.random() * -15 - 10;
+                this.speedX = Math.random() * 6 - 3;
+                this.hue = Math.random() * 360; // 随机颜色（五彩）
+                this.gravity = 0.05;
+                this.alpha = 1;
+                this.decay = 0.01;
+            }
+            update() {
+                this.speedY += this.gravity;
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= this.decay;
+                if (this.alpha <= 0) return false;
+                // 烟花爆炸（到达顶部时）
+                if (this.speedY >= -5) {
+                    this.explode();
+                    return false;
+                }
+                return true;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 100%, 50%, ${this.alpha})`;
+                ctx.fill();
+            }
+            explode() {
+                // 爆炸生成粒子
+                for (let i = 0; i < 100; i++) {
+                    particles.push(new Particle(this.x, this.y, this.hue));
+                }
+            }
+        }
+
+        // 粒子类
+        class Particle {
+            constructor(x, y, hue) {
+                this.x = x;
+                this.y = y;
+                this.speedY = Math.random() * -10 - 5;
+                this.speedX = Math.random() * 10 - 5;
+                this.gravity = 0.1;
+                this.hue = hue;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.01 + 0.005;
+                this.size = Math.random() * 3 + 1;
+            }
+            update() {
+                this.speedY += this.gravity;
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.alpha -= this.decay;
+                return this.alpha > 0;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsla(${this.hue}, 100%, 50%, ${this.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        // 动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // 绘制烟花
+            fireworks = fireworks.filter(firework => {
+                firework.update();
+                firework.draw();
+                return true;
+            });
+            // 绘制粒子
+            particles = particles.filter(particle => {
+                particle.update();
+                particle.draw();
+                return true;
+            });
+            // 随机生成烟花
+            if (Math.random() < 0.05) {
+                fireworks.push(new Firework());
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // 窗口大小适配
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // 3. 背景音乐控制
+        const music = document.getElementById('bg-music');
+        const musicBtn = document.getElementById('musicBtn');
+        musicBtn.addEventListener('click', () => {
+            if (music.paused) {
+                music.play();
+                musicBtn.textContent = '🎶';
+            } else {
+                music.pause();
+                musicBtn.textContent = '🎵';
+            }
+        });
+    </script>
+</body>
+</html>
